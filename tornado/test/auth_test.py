@@ -3,9 +3,9 @@
 # and ensure that it doesn't blow up (e.g. with unicode/bytes issues in
 # python 3)
 
-
 from __future__ import absolute_import, division, with_statement
-from tornado.auth import OpenIdMixin, OAuthMixin, OAuth2Mixin
+import unittest
+from tornado.auth import OpenIdMixin, OAuthMixin, OAuth2Mixin, oauth_normalized_params
 from tornado.escape import json_decode
 from tornado.testing import AsyncHTTPTestCase, LogTrapTestCase
 from tornado.util import b
@@ -198,3 +198,16 @@ class AuthTest(AsyncHTTPTestCase, LogTrapTestCase):
         response = self.fetch('/oauth2/client/login', follow_redirects=False)
         self.assertEqual(response.code, 302)
         self.assertTrue('/oauth2/server/authorize?' in response.headers['Location'])
+
+
+class OAuthNormalizedParamsTest(unittest.TestCase):
+    def test_params(self):
+        self.assertEqual(oauth_normalized_params({'foo': 'foobar'}), 'foo=foobar')
+
+    def test_alphabetical_order(self):
+        self.assertEqual(oauth_normalized_params({'foo': 'foobar', 'bar': 'foobar'}),
+            'bar=foobar&foo=foobar')
+
+    def test_lists(self):
+        self.assertEqual(oauth_normalized_params({'foo': 'foobar', 'bar': [2, 1]}),
+            'bar=1&bar=2&foo=val')
