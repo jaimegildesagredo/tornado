@@ -1101,8 +1101,7 @@ def _oauth_signature(consumer_token, method, url, parameters={}, token=None):
     base_elems = []
     base_elems.append(method.upper())
     base_elems.append(normalized_url)
-    base_elems.append("&".join("%s=%s" % (k, _oauth_escape(str(v)))
-                               for k, v in sorted(parameters.items())))
+    base_elems.append(_encode_params(parameters))
     base_string = "&".join(_oauth_escape(e) for e in base_elems)
 
     key_elems = [escape.utf8(consumer_token["secret"])]
@@ -1125,8 +1124,7 @@ def _oauth10a_signature(consumer_token, method, url, parameters={}, token=None):
     base_elems = []
     base_elems.append(method.upper())
     base_elems.append(normalized_url)
-    base_elems.append("&".join("%s=%s" % (k, _oauth_escape(str(v)))
-                               for k, v in sorted(parameters.items())))
+    base_elems.append(_encode_params(parameters))
 
     base_string = "&".join(_oauth_escape(e) for e in base_elems)
     key_elems = [escape.utf8(urllib.quote(consumer_token["secret"], safe='~'))]
@@ -1141,6 +1139,10 @@ def _oauth_escape(val):
     if isinstance(val, unicode):
         val = val.encode("utf-8")
     return urllib.quote(val, safe="~")
+
+
+def _encode_params(parameters):
+    return "&".join("%s=%s" % (k, _oauth_escape(str(v))) for k, v in sorted(parameters.items()))
 
 
 def _oauth_parse_response(body):
